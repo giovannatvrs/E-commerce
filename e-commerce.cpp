@@ -54,6 +54,10 @@ void menu_carrinho(){
 	*/
 }
 
+void consultar_por_preco(Produto produtos[], int *qtd){
+	
+}
+
 void ordenar_por_categoria(Produto produtos[], int *qtd){
 	bool trocou = true;
 	char aux;
