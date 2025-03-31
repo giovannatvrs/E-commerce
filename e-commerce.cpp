@@ -80,7 +80,7 @@ int buscarProduto(Produto produtos[], int *qtd, int codigo){
 	return -1;
 }
 
-/*void incluir_no_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho){
+void incluir_no_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho){
 	Item_do_Carrinho item;
 		int posicao;
 		int codigo = lerCodigo();
@@ -113,7 +113,7 @@ int buscarProduto(Produto produtos[], int *qtd, int codigo){
 	
 
 }
-*/
+
 void listar_produtos_carrinho(Item_do_Carrinho carrinho[], int qtdCarrinho){
 		if(qtdCarrinho == 0){
 			printf("Carrinho vazio!\n");
@@ -148,7 +148,7 @@ void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int
 	
 	switch(opcao){
 		case 1:
-		//	incluir_no_carrinho(produtos, &qtd, carrinho, &qtdCarrinho);
+			incluir_no_carrinho(produtos, &qtd, carrinho, &qtdCarrinho);
 			menu_carrinho(produtos, qtd, carrinho, qtdCarrinho);
 			break;
 		case 7:
