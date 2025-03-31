@@ -21,7 +21,7 @@ typedef struct{
 	int codigo;
 	char descricao[40];
 	char categoria;
-	int qtd_estoque;
+	int qtd;
 	float preco;
 	int desconto;
 }Item_do_Carrinho;
@@ -36,8 +36,9 @@ void data_hora_atual(int &dia, int &mes, int &ano, int &hora, int &min, int &seg
 	min = lt.tm_min;
 	seg = lt.tm_sec;
 }
+void ordenar_por_descricao(Item_do_Carrinho carrinho[], int qtdCarrinho);
 void ordenar_por_descricao(Produto produtos[], int qtd);
-void ordenar_por_codigo(Produto produtos[], int *qtd);
+void ordenar_por_codigo(Produto produtos[], int qtd);
 int lerQuantidade();
 int lerCodigo();
 void menu_principal(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int qtdCarrinho);
@@ -48,13 +49,13 @@ void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int
 
 void ordenar_por_codigo(Produto produtos[], int *qtd){
 	bool trocou = true;
-	int aux;
+	Produto auxiliar;
 	for(int k = *qtd-1; k > 0 && trocou; k--){
 		for(int i = 0; i < k; i++){
 			if(produtos[i].codigo > produtos[i+1].codigo){
-						aux = produtos[i+1].codigo;
-						produtos[i+1].codigo = produtos[i].codigo;
-						produtos[i].codigo = aux;
+						auxiliar = produtos[i+1];
+						produtos[i+1] = produtos[i];
+						produtos[i] = auxiliar;
 						trocou = true;
 			}
 		}
@@ -79,37 +80,51 @@ int buscarProduto(Produto produtos[], int *qtd, int codigo){
 	return -1;
 }
 
-void incluir_no_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho){
-	int codigo = lerCodigo();
-	int posicao = buscarProduto(produtos, qtd, codigo);
-	if(posicao == -1){
-		printf("ERRO: Produto nao encontrado\n");
-	}
-	else if(produtos[posicao].carrinho == true){
-		
-	}
-	else{
-		int quantidade = lerQuantidade();
-		if(quantidade > produtos[posicao].qtd_estoque){
-			printf("ERRO: Produto não tem estoque o suficiente\n");
+/*void incluir_no_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho){
+	Item_do_Carrinho item;
+		int posicao;
+		int codigo = lerCodigo();
+		posicao = buscarProduto(produtos, qtd, codigo);
+		if(posicao == -1){
+			printf("ERRO: Produto nao encontrado\n");
 		}
-		
-	}
+		else if(produtos[posicao].carrinho == true){
+			printf("ERRO: Produto ja esta no carrinho");
+		}
+		else{
+			int quantidade = lerQuantidade();
+			if(quantidade > produtos[posicao].qtd_estoque){
+				printf("ERRO: Produto não tem estoque o suficiente\n");
+			}
+			else{
+				item.categoria = produtos[posicao].categoria;
+				item.codigo =  produtos[posicao].codigo;
+				item.desconto = produtos[posicao].desconto;
+				strcpy(item.descricao, produtos[posicao].descricao);
+				item.preco = produtos[posicao].preco;
+				item.qtd = quantidade;
+				produtos[posicao].carrinho = true;
+				produtos[posicao].qtd_estoque-=quantidade;
+				carrinho[*qtdCarrinho] = item;
+				(*qtdCarrinho)++;
+				printf("Produto incluído com sucesso!\n");
+			}	
+		}	
 	
-	
-}
 
-void listar_produtos_carrinho(Produto produtos[], int qtd){
-		if(qtd == 0){
+}
+*/
+void listar_produtos_carrinho(Item_do_Carrinho carrinho[], int qtdCarrinho){
+		if(qtdCarrinho == 0){
 			printf("Carrinho vazio!\n");
 		}
 		else{
-			ordenar_por_descricao(produtos, qtd);
+			ordenar_por_descricao(carrinho, qtdCarrinho);
 			printf("---------------------------------------------------------------------\n");
 			printf("Codigo Descricao                       Categ.  Qtd     Preco Desconto\n");
 			printf("---------------------------------------------------------------------\n");
-			for(int i = 0; i < qtd; i++){
-				printf("%03d    %-32s  %c    %4d  %8.2f %8.1f\n", produtos[i].codigo, produtos[i].descricao, produtos[i].categoria, produtos[i].qtd_estoque, produtos[i].preco, produtos[i].desconto);
+			for(int i = 0; i < qtdCarrinho; i++){
+				printf("%03d    %-32s  %c    %4d  %8.2f %8.1f\n", carrinho[i].codigo, carrinho[i].descricao, carrinho[i].categoria, carrinho[i].qtd, carrinho[i].preco, carrinho[i].desconto);
 			}
 			printf("---------------------------------------------------------------------\n");	
 		}
@@ -117,7 +132,7 @@ void listar_produtos_carrinho(Produto produtos[], int qtd){
 }
 
 void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int qtdCarrinho){
-	listar_produtos_carrinho(produtos, qtdCarrinho);
+	listar_produtos_carrinho(carrinho, qtdCarrinho);
 	int opcao;
 	printf("\n================\n");
 	printf("Menu do Carrinho\n");
@@ -133,7 +148,8 @@ void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int
 	
 	switch(opcao){
 		case 1:
-			incluir_no_carrinho(produtos, &qtd, carrinho, &qtdCarrinho);
+		//	incluir_no_carrinho(produtos, &qtd, carrinho, &qtdCarrinho);
+			menu_carrinho(produtos, qtd, carrinho, qtdCarrinho);
 			break;
 		case 7:
 			menu_principal(produtos, qtd, carrinho, qtdCarrinho);
@@ -142,15 +158,30 @@ void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int
 	
 }
 
+void ordenar_por_descricao(Item_do_Carrinho carrinho[], int qtdCarrinho){
+	bool trocou = true;
+	Item_do_Carrinho auxiliar;
+	for(int k = qtdCarrinho-1; k > 0 && trocou; k--){
+		for(int i = 0; i < k; i++){
+			if(strcmp(carrinho[i].descricao, carrinho[i+1].descricao)>0){
+						auxiliar = carrinho[i+1];
+						carrinho[i+1] = carrinho[i];
+						carrinho[i] = auxiliar;
+						trocou = true;
+			}
+		}
+	}
+}
+
 void ordenar_por_descricao(Produto produtos[], int qtd){
 	bool trocou = true;
-	char auxiliar[40];
+	Produto auxiliar;
 	for(int k = qtd-1; k > 0 && trocou; k--){
 		for(int i = 0; i < k; i++){
 			if(strcmp(produtos[i].descricao, produtos[i+1].descricao)>0){
-						strcpy(auxiliar, produtos[i+1].descricao);
-						strcpy(produtos[i+1].descricao, produtos[i].descricao);
-						strcpy(produtos[i].descricao, auxiliar);
+						auxiliar = produtos[i+1];
+						produtos[i+1] = produtos[i];
+						produtos[i] = auxiliar;
 						trocou = true;
 			}
 		}
@@ -159,21 +190,20 @@ void ordenar_por_descricao(Produto produtos[], int qtd){
 
 void ordenar_por_preco(Produto produtos[], int qtd){
 	bool trocou = true;
-	float aux;
-	char auxiliar[40];
+	Produto auxiliar;
 	for(int k =qtd-1;k > 0 && trocou;k--){
 			for(int i = 0; i < k; i++){
 				if(produtos[i].preco > produtos[i+1].preco){
-				aux = produtos[i+1].preco;
-				produtos[i+1].preco = produtos[i].preco;
-				produtos[i].preco = aux;
+				auxiliar = produtos[i+1];
+				produtos[i+1]= produtos[i];
+				produtos[i] = auxiliar;
 				trocou = true;
 			}
 			else if(produtos[i].preco == produtos[i+1].preco){
 				if(strcmp(produtos[i].descricao, produtos[i+1].descricao)>0){
-						strcpy(auxiliar, produtos[i+1].descricao);
-						strcpy(produtos[i+1].descricao, produtos[i].descricao);
-						strcpy(produtos[i].descricao, auxiliar);
+						auxiliar = produtos[i+1];
+						produtos[i+1] = produtos[i];
+						produtos[i]= auxiliar;
 						trocou = true;
 				}
 			}
@@ -183,22 +213,21 @@ void ordenar_por_preco(Produto produtos[], int qtd){
 
 void ordenar_por_categoria(Produto produtos[], int qtd){
 	bool trocou = true;
-	char aux;
-	char auxiliar[40];
+	Produto auxiliar;
 	for(int k =qtd-1; k > 0 && trocou;k--){
 		trocou = false;
 		for(int i = 0; i < k; i++){
 			if(produtos[i].categoria > produtos[i+1].categoria){
-				aux = produtos[i+1].categoria;
-				produtos[i+1].categoria = produtos[i].categoria;
-				produtos[i].categoria = aux;
+				auxiliar = produtos[i+1];
+				produtos[i+1] = produtos[i];
+				produtos[i] = auxiliar;
 				trocou = true;
 			}
 			else if(produtos[i].categoria == produtos[i+1].categoria){
 				if(strcmp(produtos[i].descricao, produtos[i+1].descricao)>0){
-					strcpy(auxiliar, produtos[i+1].descricao);
-					strcpy(produtos[i+1].descricao, produtos[i].descricao);
-					strcpy(produtos[i].descricao, auxiliar);
+					auxiliar = produtos[i+1];
+					produtos[i+1] =  produtos[i];
+					produtos[i] = auxiliar;
 					trocou = true;
 				}
 			}
@@ -206,22 +235,22 @@ void ordenar_por_categoria(Produto produtos[], int qtd){
 	}
 }
 
-void consultar(Produto produtos[], int qtd, int opcao){
-	if(qtd == 0){
+void consultar(Produto produtos[], int *qtd, int opcao){
+	if(*qtd == 0){
 		printf("Não há produtos cadastrados\n");
 	}
 	else{
 		if(opcao == 4){
-			ordenar_por_categoria(produtos, qtd);
+			ordenar_por_categoria(produtos, *qtd);
 		}
 		else{
-			ordenar_por_preco(produtos, qtd);
+			ordenar_por_preco(produtos, *qtd);
 		}
 		printf("---------------------------------------------------------------------\n");
 		printf("Codigo Descricao                       Categ.  Qtd     Preco Desconto\n");
 		printf("---------------------------------------------------------------------\n");
-		for(int i = 0; i < qtd; i++){
-			printf("%03d    %-32s  %c    %4d  %8.2f %8.1f\n", produtos[i].codigo, produtos[i].descricao, produtos[i].categoria, produtos[i].qtd_estoque, produtos[i].preco, produtos[i].desconto);
+		for(int i = 0; i < *qtd; i++){
+			printf("%03d    %-32s  %c    %4d  %8.2f %8.1f\n", produtos[i].codigo, produtos[i].descricao, produtos[i].categoria, produtos[i].qtd_estoque, produtos[i].preco, (float)produtos[i].desconto);
 		}
 		printf("---------------------------------------------------------------------\n");
 			
@@ -364,14 +393,14 @@ void incluirProduto(Produto produtos[], int *qtd){
 	printf("Inclusao de produto\n");
 	printf("-------------------\n");
 	int indice;
-	do{
+	//do{
 		codigo = lerCodigo();
-		ordenar_por_codigo(produtos, qtd);
-		indice = buscarProduto(produtos, qtd, codigo);
-		if(indice != -1){
-			printf("ERRO: Produto ja cadastrado\n");
-		}
-	}while(indice != -1);
+		//ordenar_por_codigo(produtos, qtd);
+		//indice = buscarProduto(produtos, qtd, codigo);
+		//if(indice != -1){
+			//printf("ERRO: Produto ja cadastrado\n");
+		//}
+	//}while(indice != -1);
 	produto.codigo = codigo;
 	lerString(produto.descricao);
 	produto.categoria = lerCategoria();
@@ -405,11 +434,11 @@ void menu_produtos(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int
 			menu_produtos(produtos, qtd, carrinho, qtdCarrinho);
 			break;
 		case 4:
-			consultar(produtos, qtd, opcao);
+			consultar(produtos, &qtd, opcao);
 			menu_produtos(produtos, qtd, carrinho, qtdCarrinho);	
 			break;
 		case 5:
-			consultar(produtos, qtd, opcao);
+			consultar(produtos, &qtd, opcao);
 			menu_produtos(produtos, qtd, carrinho, qtdCarrinho);
 			break;	
 		case 6:
