@@ -36,6 +36,9 @@ void data_hora_atual(int &dia, int &mes, int &ano, int &hora, int &min, int &seg
 	min = lt.tm_min;
 	seg = lt.tm_sec;
 }
+
+int numero_de_casas_decimais(float n);
+int buscarProduto(Produto produtos[], int *qtd, int codigo);
 void ordenar_por_descricao(Item_do_Carrinho carrinho[], int qtdCarrinho);
 void ordenar_por_descricao(Produto produtos[], int qtd);
 void ordenar_por_codigo(Produto produtos[], int qtd);
@@ -46,6 +49,74 @@ void menu_produtos(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int
 void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int qtdCarrinho);
 
 
+int alterarDesconto(){
+	int desconto;
+	do{
+		printf("Desconto (-1 para manter o desconto atual): ");
+		scanf("%d", &desconto);
+		if(desconto < -1 || desconto > 99){
+			printf("Desconto deve ser -1 ou estar no intervalo de 0 a 99\n");
+		}
+	}while(desconto < -1 || desconto > 99);
+	
+	return desconto;
+}
+
+float alterarPreco(){
+
+	float preco;
+	int casas_decimais;
+	do{
+		printf("Preco (0 para manter o preco atual): ");
+		scanf("%f", &preco);
+		casas_decimais = numero_de_casas_decimais(preco);
+		if(preco < 0 || preco > 9999999.99 || casas_decimais > 2){
+			printf("Preco deve ser 0 ou maior que zero e deve ter no máximo 2 casas decimais\n");
+		}
+	}while(preco < 0 || preco > 9999999.99 || casas_decimais > 2);
+	
+	return preco;
+}
+
+int alterarQuantidade(){
+	int qtd_estoque;
+	do{
+		printf("Quantidade (0 para manter a quantidade atual): ");
+		scanf("%d", &qtd_estoque);
+		if(qtd_estoque < 0 || qtd_estoque > 9999){
+			printf("Quantidade deve ser 0 ou estar dentro do intervalo de 1 a 9999\n");
+		}
+	}while(qtd_estoque < 0 || qtd_estoque > 9999);
+	
+	return qtd_estoque;
+	
+}
+
+void alterarProduto(Produto produtos[], int *qtd){
+	int codigo = lerCodigo();
+	int posicao = buscarProduto(produtos, qtd, codigo);
+	if(posicao == -1){
+		printf("ERRO: Produto não encontrado\n");
+	}
+	else if(produtos[posicao].carrinho == true){
+		printf("ERRO: Produto esta no carrinho\n");
+	}
+	else{
+		int quantidade = alterarQuantidade();
+		float p = alterarPreco();
+		int d = alterarDesconto();
+		if(quantidade != 0){
+			produtos[posicao].qtd_estoque = quantidade;
+		}
+		if(p != 0){
+			produtos[posicao].preco = p;
+		}
+		if(d != -1){
+			produtos[posicao].desconto = d;
+		}
+		printf("Produto alterado com sucesso!\n");
+	}
+}
 
 void ordenar_por_codigo(Produto produtos[], int *qtd){
 	bool trocou = true;
@@ -433,6 +504,9 @@ void menu_produtos(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int
 			incluirProduto(produtos, &qtd);
 			menu_produtos(produtos, qtd, carrinho, qtdCarrinho);
 			break;
+		case 3:
+			alterarProduto(produtos, &qtd);	
+			menu_produtos(produtos, qtd, carrinho, qtdCarrinho);
 		case 4:
 			consultar(produtos, &qtd, opcao);
 			menu_produtos(produtos, qtd, carrinho, qtdCarrinho);	
