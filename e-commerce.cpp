@@ -37,6 +37,7 @@ void data_hora_atual(int &dia, int &mes, int &ano, int &hora, int &min, int &seg
 	seg = lt.tm_sec;
 }
 
+int ordernar_por_codigo(Item_do_Carrinho carrinho[], int qtdCarrinho);
 int numero_de_casas_decimais(float n);
 int buscarProduto(Produto produtos[], int *qtd, int codigo);
 void ordenar_por_descricao(Item_do_Carrinho carrinho[], int qtdCarrinho);
@@ -49,6 +50,70 @@ void menu_produtos(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int
 void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int qtdCarrinho);
 
 
+int ordernar_por_codigo(Item_do_Carrinho carrinho[], int qtdCarrinho){
+	Item_do_Carrinho aux;
+	bool trocou = true;
+	for(int k = qtdCarrinho-1; k >0 && trocou; k--){
+		trocou = false;
+		for(int i = 0; i < k;i++){
+			if(carrinho[i].codigo > carrinho[i+1].codigo){
+				aux = carrinho[i];
+				carrinho[i] = carrinho[i+1];
+				carrinho[i+1] = aux;
+				trocou = true;
+			}
+			
+		}
+	}
+}
+
+int buscar_produto_carrinho(Item_do_Carrinho carrinho[], int *qtdCarrinho, int codigo){
+	ordernar_por_codigo(carrinho, *qtdCarrinho);
+	int inicio = 0;
+	int fim = *qtdCarrinho-1;
+	while(inicio<=fim){
+		int meio = (inicio+fim)/2;
+		if(carrinho[meio].codigo == codigo){
+			return meio;
+		}
+		else if(carrinho[meio].codigo >codigo){
+			fim = meio-1;
+		}
+		else{
+			inicio = meio+1;
+		}
+	}
+	return -1;
+	
+}
+
+void aumentar_quantidade(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho){
+	printf("====================================\n");
+	printf("Aumentar Qtd de Produto do Carrinho\n");
+	printf("====================================\n");
+	int codigo = lerCodigo();
+
+	int posicao = buscarProduto(produtos, qtd, codigo);
+	int posicaoCarrinho = buscar_produto_carrinho(carrinho, qtdCarrinho, codigo);
+	if(posicao == -1){
+		printf("ERRO: Produto nao encontrado\n");
+	}
+	else if(buscar_produto_carrinho(carrinho, qtdCarrinho, codigo) == -1){
+			printf("ERRO: Produto nao esta no carrinho\n");
+	}
+	else{
+		if(produtos[posicao].qtd_estoque <= 0){
+			printf("ERRO: Produto nao tem estoque o suficiente\n");
+		}
+		else{
+			carrinho[posicaoCarrinho].qtd++;
+			produtos[posicao].qtd_estoque--;
+			printf("Produto aumentado com sucesso!\n");	
+		}
+		
+		
+	}
+}
 int alterarDesconto(){
 	int desconto;
 	do{
@@ -222,6 +287,11 @@ void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int
 			incluir_no_carrinho(produtos, &qtd, carrinho, &qtdCarrinho);
 			menu_carrinho(produtos, qtd, carrinho, qtdCarrinho);
 			break;
+			
+		case 3:
+			aumentar_quantidade(produtos, &qtd, carrinho, &qtdCarrinho);
+			menu_carrinho(produtos, qtd, carrinho, qtdCarrinho);
+			break;	
 		case 7:
 			menu_principal(produtos, qtd, carrinho, qtdCarrinho);
 			break;
