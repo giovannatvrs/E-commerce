@@ -53,6 +53,16 @@ void data_hora_atual(int &dia, int &mes, int &ano, int &hora, int &min, int &seg
 	seg = lt.tm_sec;
 }
 
+esvaziar_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho){
+	int posicao;
+	for(int i = 0; i < *qtdCarrinho; i++){
+		posicao = buscarProduto(produtos, qtd, carrinho[i].codigo);
+		produtos[posicao].qtd_estoque+=carrinho[i].qtd;
+		produtos[posicao].carrinho=false;
+	}
+	*qtdCarrinho=0;
+}
+
 void excluir_produto_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho){
 	int codigo = lerCodigo();
 	int posicao_produtos = buscarProduto(produtos, qtd, codigo);
@@ -367,6 +377,9 @@ void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int
 			diminuir_quantidade(produtos, &qtd, carrinho, &qtdCarrinho);
 			menu_carrinho(produtos, qtd, carrinho, qtdCarrinho);	
 			break;
+		case 5:
+			esvaziar_carrinho(produtos, &qtd, carrinho, &qtdCarrinho);
+			menu_carrinho(produtos, qtd, carrinho, qtdCarrinho);	
 		case 7:
 			menu_principal(produtos, qtd, carrinho, qtdCarrinho);
 			break;
