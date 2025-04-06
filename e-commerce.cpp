@@ -63,9 +63,50 @@ void data_hora_atual(int &dia, int &mes, int &ano, int &hora, int &min, int &seg
 	seg = lt.tm_sec;
 }
 
+
+
+bool validar_digitos_verificadores(char numero[]){
+	int constantes[] = {10, 9, 8, 7, 6, 5, 4, 3, 2};
+	int constantes2[] = {11, 10, 9, 8, 7, 6, 5, 4, 3, 2};
+	int soma = 0; //soma dos primeiros nove dígitos pelas as constantes do vetor constantes
+	int soma2 = 0; //soma dos primeiros dez dígitos pelas as constantes do vetor constantes2
+	int j = numero[9]-'0';
+	int k = numero[10]-'0';
+	for(int i = 0; i < 9; i++){
+		soma += (numero[i]-'0')*constantes[i];
+	}
+	for(int i = 0; i < 10; i++){
+		soma2 += (numero[i]-'0')*constantes2[i];
+	}
+	int resto = soma%11;
+	int resto2 = soma2%11;
+	if(resto == 0 || resto == 1){
+		if(j != 0){
+			return false;
+		}
+	}
+	if(j >= 2 && j <= 10){
+		if(j != (11-resto)){
+			return false;
+		}
+	}
+	
+	if(resto2 == 0 || resto2 == 1){
+		if(k != 0){
+			return false;
+		}
+	}
+	if(k >= 2 && j <= 10){
+		if(k != (11-resto2)){
+			return false;
+		}
+	}
+	
+	return true;
+}
+
 bool digitos_iguais(char numero[]){
 	int digito = numero[0] - '0';
-	printf("%d", digito);
 	for(int i = 1; numero[i] != '\0'; i++){
 		if((numero[i]-'0') != digito){
 			return false;
@@ -76,8 +117,10 @@ bool digitos_iguais(char numero[]){
 
 bool cpf_valido(char numero[]){
 	if(strlen(numero) == 11){
-		if(digitos_iguais(numero) == false){
-			return true;
+		if(!digitos_iguais(numero)){
+			if(validar_digitos_verificadores(numero)){
+				return true;
+			}
 		}
 	}
 	return false;
