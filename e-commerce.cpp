@@ -33,10 +33,12 @@ typedef struct{
 	int qtd;
 	float preco;
 	int desconto;
+	char CPF[50];
+	char numero_cartao[19];
 }Pedido;
 
 
-
+int contar_caracteres(char s[]);
 int buscar_produto_carrinho(Item_do_Carrinho carrinho[], int *qtdCarrinho, int codigo);
 int ordernar_por_codigo(Item_do_Carrinho carrinho[], int qtdCarrinho);
 int numero_de_casas_decimais(float n);
@@ -61,7 +63,33 @@ void data_hora_atual(int &dia, int &mes, int &ano, int &hora, int &min, int &seg
 	seg = lt.tm_sec;
 }
 
+
+
+bool cpf_valido(char numero[]){
+	if(strlen(numero) == 11){
+		return true;
+	}
+	return false;
+}
+
+void lerCPF(char* cpf){
+	
+	bool valido;
+	
+	do{
+		fflush(stdin);
+		printf("CPF do comprador: ");
+		scanf("%[^\n]", cpf);
+		valido = cpf_valido(cpf);
+		if(valido == false){
+			printf("CPF invalido\n");
+		}
+	}while(valido == false);
+	
+}
+
 void concluir_compra(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho, Pedido pedidos[], int *qtdPedidos){
+	Pedido pedido;
 	if(*qtdCarrinho == 0){
 		printf("Carrinho vazio\n");
 	}
@@ -69,9 +97,11 @@ void concluir_compra(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], 
 		printf("--------------------\n");
 		printf("Fechamento de Compra\n");
 		printf("--------------------\n");
-		
+		lerCPF(pedido.CPF);
+		printf("%s\n", pedido.CPF);
 	}
 }
+
 
 void esvaziar_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho){
 	int posicao;
@@ -359,7 +389,7 @@ void listar_produtos_carrinho(Item_do_Carrinho carrinho[], int qtdCarrinho){
 			printf("Codigo Descricao                       Categ.  Qtd     Preco Desconto\n");
 			printf("---------------------------------------------------------------------\n");
 			for(int i = 0; i < qtdCarrinho; i++){
-				printf("%03d    %-32s  %c    %4d  %8.2f %8.1f\n", carrinho[i].codigo, carrinho[i].descricao, carrinho[i].categoria, carrinho[i].qtd, carrinho[i].preco, carrinho[i].desconto);
+				printf("%03d    %-32s  %c    %4d  %8.2f %8.1f\n", carrinho[i].codigo, carrinho[i].descricao, carrinho[i].categoria, carrinho[i].qtd, carrinho[i].preco, (float)carrinho[i].desconto);
 			}
 			printf("---------------------------------------------------------------------\n");	
 		}
@@ -397,9 +427,13 @@ void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int
 			diminuir_quantidade(produtos, &qtd, carrinho, &qtdCarrinho);
 			menu_carrinho(produtos, qtd, carrinho, qtdCarrinho, pedidos, qtdPedidos);	
 			break;
+		case 6:
+			concluir_compra(produtos, &qtd, carrinho, &qtdCarrinho, pedidos, &qtdPedidos);
+			break;
 		case 5:
 			esvaziar_carrinho(produtos, &qtd, carrinho, &qtdCarrinho);
-			menu_carrinho(produtos, qtd, carrinho, qtdCarrinho, pedidos, qtdPedidos);	
+			menu_carrinho(produtos, qtd, carrinho, qtdCarrinho, pedidos, qtdPedidos);
+			break;	
 		case 7:
 			menu_principal(produtos, qtd, carrinho, qtdCarrinho, pedidos, qtdPedidos);
 			break;
