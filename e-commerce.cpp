@@ -27,14 +27,9 @@ typedef struct{
 }Item_do_Carrinho;
 
 typedef struct{
-	int codigo;
-	char descricao[40];
-	char categoria;
-	int qtd;
-	float preco;
-	int desconto;
+	Item_do_Carrinho itens[TAM_MAX];
 	char CPF[50];
-	char numero_cartao[19];
+	char numero_cartao[30];
 }Pedido;
 
 
@@ -63,20 +58,74 @@ void data_hora_atual(int &dia, int &mes, int &ano, int &hora, int &min, int &seg
 	seg = lt.tm_sec;
 }
 
+int soma_digitos(int n){
+	int soma = 0;
+	while(n > 0){
+		soma += n % 10;
+		n/=10;
+	}
+	return soma;
+}
 
+bool numero_valido(char numero_cartao[]){
+	int qtd_caracteres = strlen(numero_cartao);
+	int posicao_ultimo_digito;
+	int soma = 0;
+	int mult;
+	if(qtd_caracteres == 13 || qtd_caracteres == 16){
+		if(qtd_caracteres == 13){
+			posicao_ultimo_digito = 12;
+		}
+		else{
+			posicao_ultimo_digito = 15;
+		}
+		for(int i = 0; i < posicao_ultimo_digito; i++){
+			if(i % 2 == 0){
+				mult = (numero_cartao[i]-'0')*2;
+			}
+			else{
+				mult = (numero_cartao[i]-'0')*1;
+			}
+			printf("%d\n", mult);
+			if(mult >= 10){
+				soma += soma_digitos(mult);
+			}
+			else{
+				soma+= mult;
+			}
+			
+		}
+		if(soma % 10 == 0){
+			return true;
+		}
+		
+	}
+	return false;
+}
 
-bool validar_digitos_verificadores(char numero[]){
+void lerNumeroDoCartao(char* numero_cartao){
+	do{
+		fflush(stdin);
+		printf("Numero CC: ");
+		scanf("%[^\n]", numero_cartao);
+		if(!numero_valido(numero_cartao)){
+			printf("Numero do cartao invalido\n");
+		}
+	}while(!numero_valido(numero_cartao));
+}
+
+bool validar_digitos_verificadores(char cpf[]){
 	int constantes[] = {10, 9, 8, 7, 6, 5, 4, 3, 2};
 	int constantes2[] = {11, 10, 9, 8, 7, 6, 5, 4, 3, 2};
 	int soma = 0; //soma dos primeiros nove dígitos pelas as constantes do vetor constantes
 	int soma2 = 0; //soma dos primeiros dez dígitos pelas as constantes do vetor constantes2
-	int j = numero[9]-'0';
-	int k = numero[10]-'0';
+	int j = cpf[9]-'0';
+	int k = cpf[10]-'0';
 	for(int i = 0; i < 9; i++){
-		soma += (numero[i]-'0')*constantes[i];
+		soma += (cpf[i]-'0')*constantes[i];
 	}
 	for(int i = 0; i < 10; i++){
-		soma2 += (numero[i]-'0')*constantes2[i];
+		soma2 += (cpf[i]-'0')*constantes2[i];
 	}
 	int resto = soma%11;
 	int resto2 = soma2%11;
@@ -105,20 +154,20 @@ bool validar_digitos_verificadores(char numero[]){
 	return true;
 }
 
-bool digitos_iguais(char numero[]){
-	int digito = numero[0] - '0';
-	for(int i = 1; numero[i] != '\0'; i++){
-		if((numero[i]-'0') != digito){
+bool digitos_iguais(char cpf[]){
+	int digito = cpf[0] - '0';
+	for(int i = 1; cpf[i] != '\0'; i++){
+		if((cpf[i]-'0') != digito){
 			return false;
 		}
 	}
 	return true;
 }
 
-bool cpf_valido(char numero[]){
-	if(strlen(numero) == 11){
-		if(!digitos_iguais(numero)){
-			if(validar_digitos_verificadores(numero)){
+bool cpf_valido(char cpf[]){
+	if(strlen(cpf) == 11){
+		if(!digitos_iguais(cpf)){
+			if(validar_digitos_verificadores(cpf)){
 				return true;
 			}
 		}
@@ -153,6 +202,8 @@ void concluir_compra(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], 
 		printf("--------------------\n");
 		lerCPF(pedido.CPF);
 		printf("%s\n", pedido.CPF);
+		lerNumeroDoCartao(pedido.numero_cartao);
+		printf("%s\n", pedido.numero_cartao);
 	}
 }
 
