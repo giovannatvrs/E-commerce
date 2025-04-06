@@ -63,11 +63,22 @@ void data_hora_atual(int &dia, int &mes, int &ano, int &hora, int &min, int &seg
 	seg = lt.tm_sec;
 }
 
-
+bool digitos_iguais(char numero[]){
+	int digito = numero[0] - '0';
+	printf("%d", digito);
+	for(int i = 1; numero[i] != '\0'; i++){
+		if((numero[i]-'0') != digito){
+			return false;
+		}
+	}
+	return true;
+}
 
 bool cpf_valido(char numero[]){
 	if(strlen(numero) == 11){
-		return true;
+		if(digitos_iguais(numero) == false){
+			return true;
+		}
 	}
 	return false;
 }
