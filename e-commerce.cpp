@@ -616,7 +616,7 @@ void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int
 			menu_carrinho(produtos, qtd, carrinho, qtdCarrinho, pedidos, qtdPedidos);
 			break;
 		case 2:
-			excluir_produto(produtos, &qtd);
+			excluir_produto_carrinho(produtos, &qtd, carrinho, &qtdCarrinho);
 			menu_carrinho(produtos, qtd, carrinho, qtdCarrinho, pedidos, qtdPedidos);
 		case 3:
 			aumentar_quantidade(produtos, &qtd, carrinho, &qtdCarrinho);
