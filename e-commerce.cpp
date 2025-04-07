@@ -26,11 +26,15 @@ typedef struct{
 	int desconto;
 }Item_do_Carrinho;
 
+
 typedef struct{
 	Item_do_Carrinho itens[TAM_MAX];
 	char CPF[50];
 	char numero_cartao[30];
+	int ano;
+	int mes;
 }Pedido;
+
 
 
 int contar_caracteres(char s[]);
@@ -47,6 +51,12 @@ void menu_principal(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], in
 void menu_produtos(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int qtdCarrinho, Pedido pedidos[], int qtdPedidos);
 void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int qtdCarrinho, Pedido pedidos[], int qtdPedidos);
 
+void ano_atual(int &ano){
+	time_t t = time(NULL);
+	struct tm lt = *localtime(&t);
+	ano = lt.tm_year + 1900;
+}
+
 void data_hora_atual(int &dia, int &mes, int &ano, int &hora, int &min, int &seg) {
 	time_t t = time(NULL);
 	struct tm lt = *localtime(&t);
@@ -56,6 +66,34 @@ void data_hora_atual(int &dia, int &mes, int &ano, int &hora, int &min, int &seg
 	hora = lt.tm_hour;
 	min = lt.tm_min;
 	seg = lt.tm_sec;
+}
+
+int lerAno(){
+	int ano;
+	int dia, mes, ano_atual, hora, min, seg;
+	data_hora_atual(dia, mes, ano_atual, hora, min, seg);
+	do{
+		printf("Ano validade: ");
+		scanf("%d", &ano);
+		if(ano < ano_atual){
+			printf("Ano deve ser maior ou igual a %d\n", ano_atual);
+		}
+	}while(ano < ano_atual);
+	
+	return ano;
+}
+
+int lerMes(){
+	int mes;
+	do{
+		printf("Mes validade: ");
+		scanf("%d", &mes);
+		if(mes < 1 || mes > 12){
+			printf("Mes deve estar no intervalo de 1 a 12\n");
+		}
+	}while(mes < 1 || mes > 12);
+	
+	return mes;
 }
 
 int soma_digitos(int n){
@@ -86,7 +124,6 @@ bool numero_valido(char numero_cartao[]){
 			else{
 				mult = (numero_cartao[i]-'0')*1;
 			}
-			printf("%d\n", mult);
 			if(mult >= 10){
 				soma += soma_digitos(mult);
 			}
@@ -201,10 +238,11 @@ void concluir_compra(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], 
 		printf("Fechamento de Compra\n");
 		printf("--------------------\n");
 		lerCPF(pedido.CPF);
-		printf("%s\n", pedido.CPF);
 		lerNumeroDoCartao(pedido.numero_cartao);
-		printf("%s\n", pedido.numero_cartao);
+		pedido.mes = lerMes();
+		pedido.ano = lerAno();
 	}
+	
 }
 
 
