@@ -26,14 +26,31 @@ typedef struct{
 	int desconto;
 }Item_do_Carrinho;
 
+typedef struct{
+    int dia;
+	int ano;
+	int mes;
+	
+}Data;
+
+typedef struct{
+	int hora;
+	int min;
+	int seg;
+}Horario;
+
 
 typedef struct{
 	Item_do_Carrinho itens[TAM_MAX];
+	int qtd_itens;
 	char CPF[50];
 	char numero_cartao[30];
-	int ano;
-	int mes;
-	int codigo;
+	int ano_validade;
+	int mes_validade;
+	int codigo; //cvv;
+	int numero;//numero do pedido;
+	Data data;
+	Horario horario;
 }Pedido;
 
 
@@ -52,22 +69,31 @@ void menu_principal(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], in
 void menu_produtos(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int qtdCarrinho, Pedido pedidos[], int qtdPedidos);
 void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int qtdCarrinho, Pedido pedidos[], int qtdPedidos);
 
+
+void ordernar_pedidos
+
+void consultar_pedidos(Pedido pedidos[], int *qtdPedidos){
+	
+}
+
+
 void ano_atual(int &ano) {
 	time_t t = time(NULL);
 	struct tm lt = *localtime(&t);
 	ano = lt.tm_year + 1900;
 	
+	
 }
 
 void data_hora_atual(int &dia, int &mes, int &ano, int &hora, int &min, int &seg) {
-	time_t t = time(NULL);
-	struct tm lt = *localtime(&t);
-	ano = lt.tm_year + 1900;
-	mes = lt.tm_mon + 1;
-	dia = lt.tm_mday;
-	hora = lt.tm_hour;
-	min = lt.tm_min;
-	seg = lt.tm_sec;
+ time_t t = time(NULL);
+ struct tm lt = *localtime(&t);
+ ano = lt.tm_year + 1900;
+ mes = lt.tm_mon + 1;
+ dia = lt.tm_mday;
+ hora = lt.tm_hour;
+ min = lt.tm_min;
+ seg = lt.tm_sec;
 }
 
 int lerCVV(){
@@ -256,9 +282,19 @@ void concluir_compra(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], 
 		printf("--------------------\n");
 		lerCPF(pedido.CPF);
 		lerNumeroDoCartao(pedido.numero_cartao);
-		pedido.mes = lerMes();
-		pedido.ano = lerAno(ano);
+		pedido.mes_validade = lerMes();
+		pedido.ano_validade = lerAno(ano);
 		pedido.codigo = lerCVV();
+		for(int i = 0; i < *qtdCarrinho; i++){
+			pedido.itens[i] = carrinho[i];
+		}
+		pedido.qtd_itens = *qtdCarrinho;
+		pedidos[*qtdPedidos]=pedido;
+		pedido.numero = *qtdPedidos+1;
+		(*qtdPedidos)++;
+		esvaziar_carrinho(produtos,qtd,carrinho, qtdCarrinho);
+		data_hora_atual(pedido.data.dia, pedido.data.mes, pedido.data.ano, pedido.horario.hora, pedido.horario.min,pedido.horario.seg);
+		
 	}
 	
 }
