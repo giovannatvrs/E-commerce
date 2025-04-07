@@ -54,7 +54,7 @@ typedef struct{
 }Pedido;
 
 
-
+void esvaziar_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho);
 int contar_caracteres(char s[]);
 int buscar_produto_carrinho(Item_do_Carrinho carrinho[], int *qtdCarrinho, int codigo);
 int ordernar_por_codigo(Item_do_Carrinho carrinho[], int qtdCarrinho);
@@ -70,11 +70,7 @@ void menu_produtos(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int
 void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int qtdCarrinho, Pedido pedidos[], int qtdPedidos);
 
 
-void ordernar_pedidos
 
-void consultar_pedidos(Pedido pedidos[], int *qtdPedidos){
-	
-}
 
 
 void ano_atual(int &ano) {
@@ -294,7 +290,7 @@ void concluir_compra(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], 
 		(*qtdPedidos)++;
 		esvaziar_carrinho(produtos,qtd,carrinho, qtdCarrinho);
 		data_hora_atual(pedido.data.dia, pedido.data.mes, pedido.data.ano, pedido.horario.hora, pedido.horario.min,pedido.horario.seg);
-		
+		printf("Pedido nº %06d gerado com sucesso!", pedido.numero);
 	}
 	
 }
@@ -626,6 +622,7 @@ void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int
 			break;
 		case 6:
 			concluir_compra(produtos, &qtd, carrinho, &qtdCarrinho, pedidos, &qtdPedidos);
+			menu_carrinho(produtos, qtd, carrinho, qtdCarrinho, pedidos, qtdPedidos);
 			break;
 		case 5:
 			esvaziar_carrinho(produtos, &qtd, carrinho, &qtdCarrinho);
