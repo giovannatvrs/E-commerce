@@ -284,16 +284,22 @@ void concluir_compra(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], 
 		for(int i = 0; i < *qtdCarrinho; i++){
 			pedido.itens[i] = carrinho[i];
 		}
+		int posicao;
 		pedido.qtd_itens = *qtdCarrinho;
 		pedidos[*qtdPedidos]=pedido;
 		pedido.numero = *qtdPedidos+1;
 		(*qtdPedidos)++;
-		esvaziar_carrinho(produtos,qtd,carrinho, qtdCarrinho);
+		for(int i = 0; i < *qtdCarrinho; i++){
+			posicao = buscarProduto(produtos, qtd, carrinho[i].codigo);
+			produtos[posicao].carrinho=false;
+		}
+		*qtdCarrinho=0;
 		data_hora_atual(pedido.data.dia, pedido.data.mes, pedido.data.ano, pedido.horario.hora, pedido.horario.min,pedido.horario.seg);
-		printf("Pedido nº %06d gerado com sucesso!", pedido.numero);
+		printf("Pedido nº %06d gerado com sucesso!\n", pedido.numero);
 	}
 	
 }
+
 
 
 void esvaziar_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho){
@@ -610,7 +616,7 @@ void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int
 			menu_carrinho(produtos, qtd, carrinho, qtdCarrinho, pedidos, qtdPedidos);
 			break;
 		case 2:
-			excluir_produto_carrinho(produtos, &qtd, carrinho, &qtdCarrinho);
+			excluir_produto(produtos, &qtd);
 			menu_carrinho(produtos, qtd, carrinho, qtdCarrinho, pedidos, qtdPedidos);
 		case 3:
 			aumentar_quantidade(produtos, &qtd, carrinho, &qtdCarrinho);
