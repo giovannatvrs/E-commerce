@@ -52,6 +52,12 @@ void menu_principal(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], in
 void menu_produtos(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int qtdCarrinho, Pedido pedidos[], int qtdPedidos);
 void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int qtdCarrinho, Pedido pedidos[], int qtdPedidos);
 
+void ano_atual(int &ano) {
+	time_t t = time(NULL);
+	struct tm lt = *localtime(&t);
+	ano = lt.tm_year + 1900;
+	
+}
 
 void data_hora_atual(int &dia, int &mes, int &ano, int &hora, int &min, int &seg) {
 	time_t t = time(NULL);
@@ -67,6 +73,9 @@ void data_hora_atual(int &dia, int &mes, int &ano, int &hora, int &min, int &seg
 int lerCVV(){
 	int cvv;
 	do{
+		fflush(stdin);
+		printf("Codigo de seguranca: ");
+		scanf("%d", &cvv);
 		if(cvv < 111 || cvv > 999){
 			printf("Codigo deve estar no intervalo de 111 a 999\n");	
 		}
@@ -234,8 +243,9 @@ void lerCPF(char* cpf){
 }
 
 void concluir_compra(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho, Pedido pedidos[], int *qtdPedidos){
-	int dia, mes, ano_atual, hora, min, seg;
-	data_hora_atual(dia, mes, ano_atual, hora, min, seg);
+	int ano;
+	ano_atual(ano); 
+	
 	Pedido pedido;
 	if(*qtdCarrinho == 0){
 		printf("Carrinho vazio\n");
@@ -247,7 +257,7 @@ void concluir_compra(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], 
 		lerCPF(pedido.CPF);
 		lerNumeroDoCartao(pedido.numero_cartao);
 		pedido.mes = lerMes();
-		pedido.ano = lerAno(ano_atual);
+		pedido.ano = lerAno(ano);
 		pedido.codigo = lerCVV();
 	}
 	
