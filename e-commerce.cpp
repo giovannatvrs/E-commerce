@@ -53,7 +53,7 @@ typedef struct{
 	Horario horario;
 }Pedido;
 
-
+void listar_produtos_carrinho(Item_do_Carrinho carrinho[], int qtdCarrinho);
 void esvaziar_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho);
 int contar_caracteres(char s[]);
 int buscar_produto_carrinho(Item_do_Carrinho carrinho[], int *qtdCarrinho, int codigo);
@@ -70,7 +70,52 @@ void menu_produtos(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int
 void menu_carrinho(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], int qtdCarrinho, Pedido pedidos[], int qtdPedidos);
 
 
+void troca(Pedido pedidos[], int i){
+	Pedido aux;
+	aux = pedidos[i+1];
+	pedidos[i+1] = pedidos[i];
+	pedidos[i] = aux;
+}
 
+bool comparacao_entre_pedidos(Pedido a, Pedido b){
+	if (a.data.ano != b.data.ano) return a.data.ano > b.data.ano;
+    if (a.data.mes != b.data.mes) return a.data.mes > b.data.mes;
+    if (a.data.dia != b.data.dia) return a.data.dia > b.data.dia;
+    if (a.horario.hora != b.horario.hora) return a.horario.hora > b.horario.hora;
+    if (a.horario.min != b.horario.min) return a.horario.min > b.horario.min;
+    return a.horario.seg > b.horario.seg;
+}
+
+void ordenar_pedidos(Pedido pedidos[], int qtdPedidos){
+	bool trocou = true;
+	for(int k = qtdPedidos-1; k > 0 && trocou; k--){
+		trocou = false;
+		for(int i = 0; i <k; i++){
+			if(comparacao_entre_pedidos(pedidos[i], pedidos[i+1])){
+				troca(pedidos, i);
+				trocou = true;
+			}
+			
+		}
+	}
+}
+
+void consultar_pedidos(Pedido pedidos[], int qtdPedidos){
+	if(qtdPedidos == 0){
+		printf("Não há pedidos\n!");
+	}
+	else{
+		ordenar_pedidos(pedidos, qtdPedidos);
+		printf("=================================================================\n");
+		for(int i = 0; i < qtdPedidos; i++){
+			printf("Numero Data        Hora        CPF       Cartao           Total\n");
+			printf("%06d %02d/%02d/%d %02d:%02d %s  %s\n", pedidos[i].numero, pedidos[i].data.dia,pedidos[i].data.mes,pedidos[i].data.ano, pedidos[i].horario.hora,pedidos[i].horario.min,pedidos[i].CPF,pedidos[i].numero_cartao);
+			printf("-----------------------------------------------------------------\n");
+			listar_produtos_carrinho(pedidos[i].itens, pedidos[i].qtd_itens);
+			printf("-----------------------------------------------------------------\n");
+		}
+	}
+}
 
 
 void ano_atual(int &ano) {
@@ -286,15 +331,17 @@ void concluir_compra(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], 
 		}
 		int posicao;
 		pedido.qtd_itens = *qtdCarrinho;
-		pedidos[*qtdPedidos]=pedido;
-		pedido.numero = *qtdPedidos+1;
-		(*qtdPedidos)++;
+	
 		for(int i = 0; i < *qtdCarrinho; i++){
 			posicao = buscarProduto(produtos, qtd, carrinho[i].codigo);
 			produtos[posicao].carrinho=false;
 		}
 		*qtdCarrinho=0;
 		data_hora_atual(pedido.data.dia, pedido.data.mes, pedido.data.ano, pedido.horario.hora, pedido.horario.min,pedido.horario.seg);
+		pedido.numero = *qtdPedidos+1;
+		pedidos[*qtdPedidos]=pedido;
+	
+		(*qtdPedidos)++;
 		printf("Pedido nº %06d gerado com sucesso!\n", pedido.numero);
 	}
 	
@@ -959,7 +1006,12 @@ void menu_principal(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], in
 			break;	
 		case 2:
 			menu_produtos(produtos, qtd, carrinho, qtdCarrinho, pedidos, qtdPedidos);	
-			break;	
+			break;
+			
+		case 3:
+			consultar_pedidos(pedidos, qtdPedidos);
+			menu_principal(produtos, qtd, carrinho, qtdCarrinho, pedidos, qtdPedidos);
+			break;		
 		case 4:
 			return;	
 	}
