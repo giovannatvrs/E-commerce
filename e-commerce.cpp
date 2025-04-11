@@ -24,6 +24,7 @@ typedef struct{
 	int qtd;
 	float preco;
 	int desconto;
+	float valor;
 }Item_do_Carrinho;
 
 typedef struct{
@@ -53,6 +54,7 @@ typedef struct{
 	Horario horario;
 }Pedido;
 
+float calcular_total(Item_do_Carrinho carrinho[], int qtdCarrinho);
 void listar_produtos_carrinho(Item_do_Carrinho carrinho[], int qtdCarrinho);
 void esvaziar_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho);
 int contar_caracteres(char s[]);
@@ -86,16 +88,26 @@ bool comparacao_entre_pedidos(Pedido a, Pedido b){
     return a.horario.seg > b.horario.seg;
 }
 
+void listar_produtos_pedido(Item_do_Carrinho carrinho[], int qtdCarrinho){
+	ordenar_por_descricao(carrinho, qtdCarrinho);
+	printf("------------------------------------------------------------------------------\n");
+	printf("Codigo Descricao                       Categ.  Qtd     Preco Desconto    Valor\n");
+	printf("------------------------------------------------------------------------------\n");
+	for(int i = 0; i < qtdCarrinho; i++){
+		printf("%03d    %-32s  %c    %4d  %8.2f %8.1f %8.2f\n", carrinho[i].codigo, carrinho[i].descricao, carrinho[i].categoria, carrinho[i].qtd, carrinho[i].preco, (float)carrinho[i].desconto, carrinho[i].valor);
+	}
+	
+}
+
 void ordenar_pedidos(Pedido pedidos[], int qtdPedidos){
 	bool trocou = true;
 	for(int k = qtdPedidos-1; k > 0 && trocou; k--){
 		trocou = false;
 		for(int i = 0; i <k; i++){
-			if(comparacao_entre_pedidos(pedidos[i], pedidos[i+1])){
+			if(comparacao_entre_pedidos(pedidos[i], pedidos[i+1]) == false){
 				troca(pedidos, i);
 				trocou = true;
-			}
-			
+			}	
 		}
 	}
 }
@@ -106,24 +118,28 @@ void consultar_pedidos(Pedido pedidos[], int qtdPedidos){
 	}
 	else{
 		ordenar_pedidos(pedidos, qtdPedidos);
-		printf("=================================================================\n");
+		printf("============================================================================\n");
 		for(int i = 0; i < qtdPedidos; i++){
-			printf("Numero Data        Hora        CPF       Cartao           Total\n");
-			printf("%06d %02d/%02d/%d %02d:%02d %s  %s\n", pedidos[i].numero, pedidos[i].data.dia,pedidos[i].data.mes,pedidos[i].data.ano, pedidos[i].horario.hora,pedidos[i].horario.min,pedidos[i].CPF,pedidos[i].numero_cartao);
-			printf("-----------------------------------------------------------------\n");
-			listar_produtos_carrinho(pedidos[i].itens, pedidos[i].qtd_itens);
-			printf("-----------------------------------------------------------------\n");
+			printf("Numero Data        Hora        CPF           Cartao                    Total\n");
+			printf("%06d %02d/%02d/%d  %02d:%02d    %s          %s  %8.2f\n", pedidos[i].numero, pedidos[i].data.dia,pedidos[i].data.mes,pedidos[i].data.ano, pedidos[i].horario.hora,pedidos[i].horario.min,pedidos[i].CPF,
+			pedidos[i].numero_cartao, calcular_total(pedidos[i].itens, pedidos[i].qtd_itens));
+			printf("============================================================================\n");
+			listar_produtos_pedido(pedidos[i].itens, pedidos[i].qtd_itens);
+			printf("============================================================================\n");
 		}
 	}
 }
 
+void mes_atual(int &mes) {
+	time_t t = time(NULL);
+	struct tm lt = *localtime(&t);
+	mes = lt.tm_mon + 1;	
+}
 
 void ano_atual(int &ano) {
 	time_t t = time(NULL);
 	struct tm lt = *localtime(&t);
-	ano = lt.tm_year + 1900;
-	
-	
+	ano = lt.tm_year + 1900;	
 }
 
 void data_hora_atual(int &dia, int &mes, int &ano, int &hora, int &min, int &seg) {
@@ -140,7 +156,6 @@ void data_hora_atual(int &dia, int &mes, int &ano, int &hora, int &min, int &seg
 int lerCVV(){
 	int cvv;
 	do{
-		fflush(stdin);
 		printf("Codigo de seguranca: ");
 		scanf("%d", &cvv);
 		if(cvv < 111 || cvv > 999){
@@ -152,13 +167,13 @@ int lerCVV(){
 
 int lerAno(int ano_atual){
 	int ano;
-	
 	do{
 		printf("Ano validade: ");
 		scanf("%d", &ano);
 		if(ano < ano_atual){
 			printf("Ano deve ser maior ou igual a %d\n", ano_atual);
 		}
+		
 	}while(ano < ano_atual);
 	
 	return ano;
@@ -198,12 +213,15 @@ bool numero_valido(char numero_cartao[]){
 		else{
 			posicao_ultimo_digito = 15;
 		}
-		for(int i = 0; i < posicao_ultimo_digito; i++){
-			if(i % 2 == 0){
+		bool multiplica = false;
+		for(int i = posicao_ultimo_digito; i >= 0; i--){
+			if(multiplica){
 				mult = (numero_cartao[i]-'0')*2;
+				multiplica = false;
 			}
 			else{
-				mult = (numero_cartao[i]-'0')*1;
+				mult = numero_cartao[i]-'0';
+				multiplica = true;
 			}
 			if(mult >= 10){
 				soma += soma_digitos(mult);
@@ -223,7 +241,7 @@ bool numero_valido(char numero_cartao[]){
 
 void lerNumeroDoCartao(char* numero_cartao){
 	do{
-		fflush(stdin);
+		getchar();
 		printf("Numero CC: ");
 		scanf("%[^\n]", numero_cartao);
 		if(!numero_valido(numero_cartao)){
@@ -298,7 +316,7 @@ void lerCPF(char* cpf){
 	bool valido;
 	
 	do{
-		fflush(stdin);
+		getchar();
 		printf("CPF do comprador: ");
 		scanf("%[^\n]", cpf);
 		valido = cpf_valido(cpf);
@@ -310,40 +328,53 @@ void lerCPF(char* cpf){
 }
 
 void concluir_compra(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho, Pedido pedidos[], int *qtdPedidos){
-	int ano;
-	ano_atual(ano); 
-	
-	Pedido pedido;
-	if(*qtdCarrinho == 0){
-		printf("Carrinho vazio\n");
+	if(*qtdPedidos == TAM_MAX){
+		printf("Quantidade máxima de pedidos atingida\n");
 	}
 	else{
-		printf("--------------------\n");
-		printf("Fechamento de Compra\n");
-		printf("--------------------\n");
-		lerCPF(pedido.CPF);
-		lerNumeroDoCartao(pedido.numero_cartao);
-		pedido.mes_validade = lerMes();
-		pedido.ano_validade = lerAno(ano);
-		pedido.codigo = lerCVV();
-		for(int i = 0; i < *qtdCarrinho; i++){
-			pedido.itens[i] = carrinho[i];
+		int ano;
+		int mes;
+		ano_atual(ano); 
+		mes_atual(mes);
+		Pedido pedido;
+		if(*qtdCarrinho == 0){
+			printf("Carrinho vazio\n");
 		}
-		int posicao;
-		pedido.qtd_itens = *qtdCarrinho;
-	
-		for(int i = 0; i < *qtdCarrinho; i++){
-			posicao = buscarProduto(produtos, qtd, carrinho[i].codigo);
-			produtos[posicao].carrinho=false;
-		}
-		*qtdCarrinho=0;
-		data_hora_atual(pedido.data.dia, pedido.data.mes, pedido.data.ano, pedido.horario.hora, pedido.horario.min,pedido.horario.seg);
-		pedido.numero = *qtdPedidos+1;
-		pedidos[*qtdPedidos]=pedido;
-	
-		(*qtdPedidos)++;
-		printf("Pedido nº %06d gerado com sucesso!\n", pedido.numero);
+		else{
+			printf("--------------------\n");
+			printf("Fechamento de Compra\n");
+			printf("--------------------\n");
+			lerCPF(pedido.CPF);
+			lerNumeroDoCartao(pedido.numero_cartao);
+			do{
+				pedido.mes_validade = lerMes();
+				pedido.ano_validade = lerAno(ano);
+				if(pedido.mes_validade < mes){
+					printf("Cartao invalido\n");
+				}
+			}while(pedido.mes_validade < mes && pedido.ano_validade == ano);
+			
+			pedido.codigo = lerCVV();
+			for(int i = 0; i < *qtdCarrinho; i++){
+				pedido.itens[i] = carrinho[i];
+			}
+			int posicao;
+			pedido.qtd_itens = *qtdCarrinho;
+		
+			for(int i = 0; i < *qtdCarrinho; i++){
+				posicao = buscarProduto(produtos, qtd, carrinho[i].codigo);
+				produtos[posicao].carrinho=false;
+			}
+			*qtdCarrinho=0;
+			data_hora_atual(pedido.data.dia, pedido.data.mes, pedido.data.ano, pedido.horario.hora, pedido.horario.min,pedido.horario.seg);
+			pedido.numero = *qtdPedidos+1;
+			pedidos[*qtdPedidos]=pedido;
+		
+			(*qtdPedidos)++;
+			printf("Pedido n.o %06d gerado com sucesso!\n", pedido.numero);
+		}	
 	}
+	
 	
 }
 
@@ -592,7 +623,7 @@ int buscarProduto(Produto produtos[], int *qtd, int codigo){
 }
 
 void incluir_no_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho){
-	Item_do_Carrinho item;
+		Item_do_Carrinho item;
 		int posicao;
 		int codigo = lerCodigo();
 		posicao = buscarProduto(produtos, qtd, codigo);
@@ -614,6 +645,7 @@ void incluir_no_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho
 				strcpy(item.descricao, produtos[posicao].descricao);
 				item.preco = produtos[posicao].preco;
 				item.qtd = quantidade;
+				item.valor = (item.preco - (item.preco * item.desconto/100))*item.qtd;
 				produtos[posicao].carrinho = true;
 				produtos[posicao].qtd_estoque-=quantidade;
 				carrinho[*qtdCarrinho] = item;
@@ -625,20 +657,32 @@ void incluir_no_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho
 
 }
 
+float calcular_total(Item_do_Carrinho carrinho[], int qtdCarrinho){
+	float total = 0;
+	for(int i = 0; i < qtdCarrinho; i++){
+		total+= carrinho[i].valor;
+	}
+	return total;
+}
+
+
 void listar_produtos_carrinho(Item_do_Carrinho carrinho[], int qtdCarrinho){
-		if(qtdCarrinho == 0){
-			printf("Carrinho vazio!\n");
+	if(qtdCarrinho == 0){
+		printf("Carrinho vazio!\n");
+	}
+	else{
+		ordenar_por_descricao(carrinho, qtdCarrinho);
+		printf("------------------------------------------------------------------------------\n");
+		printf("Codigo Descricao                       Categ.  Qtd     Preco Desconto    Valor\n");
+		printf("------------------------------------------------------------------------------\n");
+		for(int i = 0; i < qtdCarrinho; i++){
+			printf("%03d    %-32s  %c    %4d  %8.2f %8.1f %8.2f\n", carrinho[i].codigo, carrinho[i].descricao, carrinho[i].categoria, carrinho[i].qtd, carrinho[i].preco, (float)carrinho[i].desconto, carrinho[i].valor);
 		}
-		else{
-			ordenar_por_descricao(carrinho, qtdCarrinho);
-			printf("---------------------------------------------------------------------\n");
-			printf("Codigo Descricao                       Categ.  Qtd     Preco Desconto\n");
-			printf("---------------------------------------------------------------------\n");
-			for(int i = 0; i < qtdCarrinho; i++){
-				printf("%03d    %-32s  %c    %4d  %8.2f %8.1f\n", carrinho[i].codigo, carrinho[i].descricao, carrinho[i].categoria, carrinho[i].qtd, carrinho[i].preco, (float)carrinho[i].desconto);
-			}
-			printf("---------------------------------------------------------------------\n");	
-		}
+		printf("------------------------------------------------------------------------------\n");
+		float total = calcular_total(carrinho, qtdCarrinho);
+		printf("Total: R$    %.2f\n", total);
+		printf("------------------------------------------------------------------------------\n");	
+	}
 		
 }
 
@@ -834,6 +878,7 @@ float lerPreco(){
 int lerQuantidade(){
 	int qtd_estoque;
 	do{
+		getchar();
 		printf("Quantidade: ");
 		scanf("%d", &qtd_estoque);
 		if(qtd_estoque < 1 || qtd_estoque > 9999){
@@ -848,10 +893,9 @@ int lerQuantidade(){
 char lerCategoria(){
 	char categoria;
 	do{
-		fflush(stdin);
+		getchar();
 		printf("Categoria: ");
 		scanf("%c", &categoria);
-		fflush(stdin);
 		categoria = toupper(categoria);
 		if(categoria < 'A' || categoria > 'E'){
 			printf("Categoria deve ser A, B, C, D e E\n");
@@ -891,7 +935,7 @@ void lerString(char* descricao){
 	int qtd;
 	
 	do{
-		fflush(stdin);
+		getchar();
 		printf("Descricao: ");
 		scanf("%[^\n]", descricao);
 		tirar_espacos_extras(descricao);
@@ -919,30 +963,33 @@ int lerCodigo(){
 
 
 void incluirProduto(Produto produtos[], int *qtd){
-	Produto produto;
-	int codigo;
-	printf("\n-------------------\n");
-	printf("Inclusao de produto\n");
-	printf("-------------------\n");
-	int indice;
-	//do{
-		codigo = lerCodigo();
-		//ordenar_por_codigo(produtos, qtd);
-		//indice = buscarProduto(produtos, qtd, codigo);
-		//if(indice != -1){
-			//printf("ERRO: Produto ja cadastrado\n");
-		//}
-	//}while(indice != -1);
-	produto.codigo = codigo;
-	lerString(produto.descricao);
-	produto.categoria = lerCategoria();
-	produto.qtd_estoque = lerQuantidade();
-	produto.preco = lerPreco();
-	produto.desconto = lerDesconto();
-	produto.carrinho = false;
-	produtos[*qtd] = produto;
-	(*qtd)++;
-	
+	if(*qtd == TAM_MAX){
+		printf("Quantidade máxima de produtos foi atingida\n");
+	}
+	else{
+		Produto produto;
+		int codigo;
+		printf("\n-------------------\n");
+		printf("Inclusao de produto\n");
+		printf("-------------------\n");
+		int indice;
+		do{
+			codigo = lerCodigo();
+			indice = buscarProduto(produtos, qtd, codigo);
+			if(indice != -1){
+				printf("ERRO: Produto ja cadastrado\n");
+			}
+		}while(indice != -1);
+		produto.codigo = codigo;
+		lerString(produto.descricao);
+		produto.categoria = lerCategoria();
+		produto.qtd_estoque = lerQuantidade();
+		produto.preco = lerPreco();
+		produto.desconto = lerDesconto();
+		produto.carrinho = false;
+		produtos[*qtd] = produto;
+		(*qtd)++;	
+	}
 }
 
 
@@ -1007,7 +1054,6 @@ void menu_principal(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], in
 		case 2:
 			menu_produtos(produtos, qtd, carrinho, qtdCarrinho, pedidos, qtdPedidos);	
 			break;
-			
 		case 3:
 			consultar_pedidos(pedidos, qtdPedidos);
 			menu_principal(produtos, qtd, carrinho, qtdCarrinho, pedidos, qtdPedidos);
@@ -1023,7 +1069,6 @@ int main(){
 	Item_do_Carrinho carrinho[TAM_MAX];
 	Produto produtos[TAM_MAX];
 	Pedido pedidos[TAM_MAX];
-	
 	int qtdProdutos = 0;
 	int qtdCarrinho = 0;
 	int qtdPedidos = 0;
