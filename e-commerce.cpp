@@ -60,7 +60,7 @@ void esvaziar_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[]
 int contar_caracteres(char s[]);
 int buscar_produto_carrinho(Item_do_Carrinho carrinho[], int *qtdCarrinho, int codigo);
 int ordernar_por_codigo(Item_do_Carrinho carrinho[], int qtdCarrinho);
-int numero_de_casas_decimais(float n);
+int numero_de_casas_decimais(char preco[]);
 int buscarProduto(Produto produtos[], int *qtd, int codigo);
 void ordenar_por_descricao(Item_do_Carrinho carrinho[], int qtdCarrinho);
 void ordenar_por_descricao(Produto produtos[], int qtd);
@@ -90,7 +90,6 @@ bool comparacao_entre_pedidos(Pedido a, Pedido b){
 
 void listar_produtos_pedido(Item_do_Carrinho carrinho[], int qtdCarrinho){
 	ordenar_por_descricao(carrinho, qtdCarrinho);
-	printf("------------------------------------------------------------------------------\n");
 	printf("Codigo Descricao                       Categ.  Qtd     Preco Desconto    Valor\n");
 	printf("------------------------------------------------------------------------------\n");
 	for(int i = 0; i < qtdCarrinho; i++){
@@ -118,14 +117,14 @@ void consultar_pedidos(Pedido pedidos[], int qtdPedidos){
 	}
 	else{
 		ordenar_pedidos(pedidos, qtdPedidos);
-		printf("============================================================================\n");
+		printf("==============================================================================\n");
 		for(int i = 0; i < qtdPedidos; i++){
-			printf("Numero Data        Hora        CPF           Cartao                    Total\n");
-			printf("%06d %02d/%02d/%d  %02d:%02d    %s          %s  %8.2f\n", pedidos[i].numero, pedidos[i].data.dia,pedidos[i].data.mes,pedidos[i].data.ano, pedidos[i].horario.hora,pedidos[i].horario.min,pedidos[i].CPF,
+			printf("Numero Data        Hora        CPF           Cartao                  Total\n");
+			printf("%06d %02d/%02d/%d  %02d:%02d    %s      %s  %.2f\n", pedidos[i].numero, pedidos[i].data.dia,pedidos[i].data.mes,pedidos[i].data.ano, pedidos[i].horario.hora,pedidos[i].horario.min,pedidos[i].CPF,
 			pedidos[i].numero_cartao, calcular_total(pedidos[i].itens, pedidos[i].qtd_itens));
-			printf("============================================================================\n");
+			printf("==============================================================================\n");
 			listar_produtos_pedido(pedidos[i].itens, pedidos[i].qtd_itens);
-			printf("============================================================================\n");
+			printf("==============================================================================\n");
 		}
 	}
 }
@@ -349,7 +348,7 @@ void concluir_compra(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], 
 			do{
 				pedido.mes_validade = lerMes();
 				pedido.ano_validade = lerAno(ano);
-				if(pedido.mes_validade < mes){
+				if(pedido.mes_validade < mes && pedido.ano_validade == ano){
 					printf("Cartao invalido\n");
 				}
 			}while(pedido.mes_validade < mes && pedido.ano_validade == ano);
@@ -533,17 +532,26 @@ int alterarDesconto(){
 }
 
 float alterarPreco(){
-
+	char* fim_string;
+	char preco_string[20];
 	float preco;
 	int casas_decimais;
 	do{
+		getchar();
 		printf("Preco (0 para manter o preco atual): ");
-		scanf("%f", &preco);
-		casas_decimais = numero_de_casas_decimais(preco);
-		if(preco < 0 || preco > 9999999.99 || casas_decimais > 2){
-			printf("Preco deve ser 0 ou maior que zero e deve ter no máximo 2 casas decimais\n");
+		scanf("%s", &preco_string);
+		preco = strtof(preco_string, &fim_string);
+		if(*fim_string != '\0'){
+			printf("Erro: caracteres inválidos\n");
 		}
-	}while(preco < 0 || preco > 9999999.99 || casas_decimais > 2);
+		else{
+			casas_decimais = numero_de_casas_decimais(preco_string);
+			if(preco < 0 || preco > 9999999.99 || casas_decimais > 2){
+				printf("Preco deve ser 0 ou maior que zero e deve ter no máximo 2 casas decimais\n");
+			}	
+		}
+		
+	}while(preco < 0 || preco > 9999999.99 || casas_decimais > 2||*fim_string != '\0');
 	
 	return preco;
 }
@@ -847,30 +855,44 @@ int lerDesconto(){
 	return desconto;
 }
 
-int numero_de_casas_decimais(float n){
-	int fator = 1;
+
+
+int numero_de_casas_decimais(char preco[]){
 	int qtd = 0;
-	while(fmod(n*fator,1)!= 0){
-		fator *=10;
-		qtd++;
+	int posicao_ponto = -1;
+	for(int i = 0; preco[i] != '\0';i++){
+		if(preco[i] == '.'){
+			posicao_ponto = i;
+		}
+		else if(posicao_ponto != -1 && i > posicao_ponto){
+			qtd++;
+		}
 	}
-	return qtd; 
+	return qtd;
 }
 
 
 float lerPreco(){
-
+	char* fim_string;
+	char preco_string[20];
 	float preco;
 	int casas_decimais;
 	do{
+		getchar();
 		printf("Preco: ");
-		scanf("%f", &preco);
-		casas_decimais = numero_de_casas_decimais(preco);
-		printf("%d", casas_decimais);
-		if(preco <= 0 || preco > 9999999.99 || casas_decimais > 2){
-			printf("Preco deve ser maior que zero e deve ter no máximo 2 casas decimais\n");
+		scanf("%s", &preco_string);
+		preco = strtof(preco_string, &fim_string);
+		if(*fim_string != '\0'){
+			printf("Erro: caracteres inválidos\n");
 		}
-	}while(preco <= 0 || preco > 9999999.99 || casas_decimais > 2);
+		else{
+			casas_decimais = numero_de_casas_decimais(preco_string);
+			if(preco <= 0|| preco > 9999999.99 || casas_decimais > 2){
+				printf("Preco deve ser maior que zero e deve ter no máximo 2 casas decimais\n");
+			}	
+		}
+		
+	}while(preco <= 0 || preco > 9999999.99 || casas_decimais > 2||*fim_string != '\0');
 	
 	return preco;
 }
