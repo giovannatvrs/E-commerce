@@ -5,8 +5,9 @@
 #include <time.h>
 #include <math.h>
 #include <stdbool.h>
-
-const int TAM_MAX = 3;
+#include <locale.h>
+const int TAM_MAX = 100;
+const double MIN_PRECO = 0.01;
 typedef struct{
 	int codigo;
 	char descricao[40];
@@ -113,7 +114,7 @@ void ordenar_pedidos(Pedido pedidos[], int qtdPedidos){
 
 void consultar_pedidos(Pedido pedidos[], int qtdPedidos){
 	if(qtdPedidos == 0){
-		printf("Não há pedidos\n!");
+		printf("Não há pedidos!\n");
 	}
 	else{
 		ordenar_pedidos(pedidos, qtdPedidos);
@@ -410,23 +411,29 @@ void excluir_produto_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho car
 }
 
 void excluir_produto(Produto produtos[], int *qtd){
-	int codigo = lerCodigo();
-	int posicao = buscarProduto(produtos, qtd, codigo);
-	if(posicao == -1){
-		printf("ERRO: Produto não encontrado\n");
-	}
-	else if(produtos[posicao].carrinho == true){
-		printf("ERRO: Produto está no carrinho\n");
-	}
-	else if(produtos[posicao].qtd_estoque > 0){
-		printf("ERRO: Produto possui estoque > 0\n");
+	if(*qtd == 0){
+		printf("\nNão há produtos\n");
 	}
 	else{
-		for(int i = posicao; i < *qtd-1; i++) {
-			produtos[i] = produtos[i+1];
+		int codigo = lerCodigo();
+		int posicao = buscarProduto(produtos, qtd, codigo);
+		if(posicao == -1){
+			printf("ERRO: Produto não encontrado\n");
 		}
-		(*qtd)--;
+		else if(produtos[posicao].carrinho == true){
+			printf("ERRO: Produto está no carrinho\n");
+		}
+		else if(produtos[posicao].qtd_estoque > 0){
+			printf("ERRO: Produto possui estoque > 0\n");
+		}
+		else{
+			for(int i = posicao; i < *qtd-1; i++) {
+				produtos[i] = produtos[i+1];
+			}
+			(*qtd)--;
+		}	
 	}
+	
 }
 
 int ordernar_por_codigo(Item_do_Carrinho carrinho[], int qtdCarrinho){
@@ -468,54 +475,60 @@ int buscar_produto_carrinho(Item_do_Carrinho carrinho[], int *qtdCarrinho, int c
 
 
 void diminuir_quantidade(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho){
-	printf("====================================\n");
-	printf("Diminuir Qtd de Produto do Carrinho\n");
-	printf("====================================\n");
-	int codigo = lerCodigo();
-
-	int posicao = buscarProduto(produtos, qtd, codigo);
-	int posicaoCarrinho = buscar_produto_carrinho(carrinho, qtdCarrinho, codigo);
-	if(posicao == -1){
-		printf("ERRO: Produto nao encontrado\n");
-	}
-	else if(buscar_produto_carrinho(carrinho, qtdCarrinho, codigo) == -1){
-			printf("ERRO: Produto nao esta no carrinho\n");
+	if(*qtd == 0){
+		printf("\nNão há produtos para diminuir quantidade");
 	}
 	else{
-		
+		printf("====================================\n");
+		printf("Diminuir Qtd de Produto do Carrinho\n");
+		printf("====================================\n");
+		int codigo = lerCodigo();
+	
+		int posicao = buscarProduto(produtos, qtd, codigo);
+		int posicaoCarrinho = buscar_produto_carrinho(carrinho, qtdCarrinho, codigo);
+		if(posicao == -1){
+			printf("ERRO: Produto nao encontrado\n");
+		}
+		else if(buscar_produto_carrinho(carrinho, qtdCarrinho, codigo) == -1){
+			printf("ERRO: Produto nao esta no carrinho\n");
+		}
+		else{
 			carrinho[posicaoCarrinho].qtd--;
 			produtos[posicao].qtd_estoque++;
 			printf("Produto diminuido com sucesso!\n");	
-	
-		
+		}	
 	}
+	
 }
 
 void aumentar_quantidade(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho){
-	printf("====================================\n");
-	printf("Aumentar Qtd de Produto do Carrinho\n");
-	printf("====================================\n");
-	int codigo = lerCodigo();
-
-	int posicao = buscarProduto(produtos, qtd, codigo);
-	int posicaoCarrinho = buscar_produto_carrinho(carrinho, qtdCarrinho, codigo);
-	if(posicao == -1){
-		printf("ERRO: Produto nao encontrado\n");
-	}
-	else if(buscar_produto_carrinho(carrinho, qtdCarrinho, codigo) == -1){
-			printf("ERRO: Produto nao esta no carrinho\n");
+	if(*qtd == 0){
+		printf("\nNão há produtos\n");
 	}
 	else{
-		if(produtos[posicao].qtd_estoque <= 0){
-			printf("ERRO: Produto nao tem estoque o suficiente\n");
+		printf("====================================\n");
+		printf("Aumentar Qtd de Produto do Carrinho\n");
+		printf("====================================\n");
+		int codigo = lerCodigo();
+	
+		int posicao = buscarProduto(produtos, qtd, codigo);
+		int posicaoCarrinho = buscar_produto_carrinho(carrinho, qtdCarrinho, codigo);
+		if(posicao == -1){
+			printf("ERRO: Produto nao encontrado\n");
+		}
+		else if(buscar_produto_carrinho(carrinho, qtdCarrinho, codigo) == -1){
+				printf("ERRO: Produto nao esta no carrinho\n");
 		}
 		else{
-			carrinho[posicaoCarrinho].qtd++;
-			produtos[posicao].qtd_estoque--;
-			printf("Produto aumentado com sucesso!\n");	
-		}
-		
-		
+			if(produtos[posicao].qtd_estoque <= 0){
+				printf("ERRO: Produto nao tem estoque o suficiente\n");
+			}
+			else{
+				carrinho[posicaoCarrinho].qtd++;
+				produtos[posicao].qtd_estoque--;
+				printf("Produto aumentado com sucesso!\n");	
+			}
+		}	
 	}
 }
 int alterarDesconto(){
@@ -571,29 +584,35 @@ int alterarQuantidade(){
 }
 
 void alterarProduto(Produto produtos[], int *qtd){
-	int codigo = lerCodigo();
-	int posicao = buscarProduto(produtos, qtd, codigo);
-	if(posicao == -1){
-		printf("ERRO: Produto não encontrado\n");
-	}
-	else if(produtos[posicao].carrinho == true){
-		printf("ERRO: Produto esta no carrinho\n");
+	if(*qtd == 0){
+		printf("\nNão há produtos\n");
 	}
 	else{
-		int quantidade = alterarQuantidade();
-		float p = alterarPreco();
-		int d = alterarDesconto();
-		if(quantidade != 0){
-			produtos[posicao].qtd_estoque = quantidade;
+		int codigo = lerCodigo();
+		int posicao = buscarProduto(produtos, qtd, codigo);
+		if(posicao == -1){
+			printf("ERRO: Produto não encontrado\n");
 		}
-		if(p != 0){
-			produtos[posicao].preco = p;
+		else if(produtos[posicao].carrinho == true){
+			printf("ERRO: Produto esta no carrinho\n");
 		}
-		if(d != -1){
-			produtos[posicao].desconto = d;
-		}
-		printf("Produto alterado com sucesso!\n");
+		else{
+			int quantidade = alterarQuantidade();
+			float p = alterarPreco();
+			int d = alterarDesconto();
+			if(quantidade != 0){
+				produtos[posicao].qtd_estoque = quantidade;
+			}
+			if(p != 0){
+				produtos[posicao].preco = p;
+			}
+			if(d != -1){
+				produtos[posicao].desconto = d;
+			}
+			printf("Produto alterado com sucesso!\n");
+		}	
 	}
+	
 }
 
 void ordenar_por_codigo(Produto produtos[], int *qtd){
@@ -631,6 +650,10 @@ int buscarProduto(Produto produtos[], int *qtd, int codigo){
 }
 
 void incluir_no_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho[], int *qtdCarrinho){
+	if(*qtd == 0){
+		printf("Não há produtos para incluir\n");
+	}
+	else{
 		Item_do_Carrinho item;
 		int posicao;
 		int codigo = lerCodigo();
@@ -662,7 +685,7 @@ void incluir_no_carrinho(Produto produtos[], int *qtd, Item_do_Carrinho carrinho
 			}	
 		}	
 	
-
+	}
 }
 
 float calcular_total(Item_do_Carrinho carrinho[], int qtdCarrinho){
@@ -676,7 +699,7 @@ float calcular_total(Item_do_Carrinho carrinho[], int qtdCarrinho){
 
 void listar_produtos_carrinho(Item_do_Carrinho carrinho[], int qtdCarrinho){
 	if(qtdCarrinho == 0){
-		printf("Carrinho vazio!\n");
+		printf("\nCarrinho vazio!\n");
 	}
 	else{
 		ordenar_por_descricao(carrinho, qtdCarrinho);
@@ -819,7 +842,7 @@ void ordenar_por_categoria(Produto produtos[], int qtd){
 
 void consultar(Produto produtos[], int *qtd, int opcao){
 	if(*qtd == 0){
-		printf("Não há produtos cadastrados\n");
+		printf("\nNão há produtos cadastrados\n");
 	}
 	else{
 		if(opcao == 4){
@@ -855,57 +878,82 @@ int lerDesconto(){
 	return desconto;
 }
 
-
-
-int numero_de_casas_decimais(char preco[]){
-	int qtd = 0;
-	int posicao_ponto = -1;
-	for(int i = 0; preco[i] != '\0';i++){
-		if(preco[i] == '.'){
-			posicao_ponto = i;
+bool string_preco_valida(char preco[]){
+	int pontos = 0;
+	for(int i = 0; preco[i] != '\0'; i++){
+		if(preco[i] != '.' && !isdigit(preco[i])){
+			return false;
 		}
-		else if(posicao_ponto != -1 && i > posicao_ponto){
-			qtd++;
-		}
+		if(preco[i]== '.'){
+			pontos++;
+			if(pontos > 1){
+				return false;
+			}
+		}	
 	}
-	return qtd;
+	return true;
 }
 
 
-float lerPreco(){
-	char* fim_string;
-	char preco_string[20];
-	float preco;
-	int casas_decimais;
-	do{
-		getchar();
-		printf("Preco: ");
-		scanf("%s", &preco_string);
-		preco = strtof(preco_string, &fim_string);
-		if(*fim_string != '\0'){
-			printf("Erro: caracteres inválidos\n");
+int numero_de_casas_decimais(char preco[]) {
+    int qtd = 0;
+    int posicao_ponto = -1;
+    for (int i = 0; preco[i] != '\0'; i++) {
+        if (preco[i] == '.') {
+            posicao_ponto = i;
+        }
+        else if (posicao_ponto != -1 && i > posicao_ponto) {
+            qtd++;
+        }
+    }
+    return qtd;
+}
+
+float lerPreco() {
+    char preco_string[20];
+    double preco;
+    int casas_decimais;
+	bool valido = true;
+    do {
+    	valido = true;
+        printf("Preco: ");
+        scanf("%s", preco_string);
+        if(!string_preco_valida(preco_string)){
+        	printf("Erro: caracteres inválidos\n");
+        	valido = false;
 		}
-		else{
-			casas_decimais = numero_de_casas_decimais(preco_string);
-			if(preco <= 0|| preco > 9999999.99 || casas_decimais > 2){
-				printf("Preco deve ser maior que zero e deve ter no máximo 2 casas decimais\n");
+        else{
+        	if((strcmp(preco_string, "0") == 0 || (strcmp(preco_string, "0.0")==0) || (strcmp(preco_string, "0.00")==0))){
+     			valido = false;
+			}
+	     	else{
+	     		preco = strtof(preco_string, NULL);		
+	        	casas_decimais = numero_de_casas_decimais(preco_string);
+		        if (preco < 0 || preco > 9999999.99 || casas_decimais > 2){
+		        	valido = false;
+		            
+		        }	
+			}
+	        if(valido == false){
+	        	printf("Preco deve ser maior que zero e deve ter no máximo 2 casas decimais\n");
 			}	
 		}
-		
-	}while(preco <= 0 || preco > 9999999.99 || casas_decimais > 2||*fim_string != '\0');
-	
-	return preco;
+     	
+    } while (valido == false);
+
+    return preco;
 }
 
 int lerQuantidade(){
 	int qtd_estoque;
 	do{
-		getchar();
+		
 		printf("Quantidade: ");
 		scanf("%d", &qtd_estoque);
 		if(qtd_estoque < 1 || qtd_estoque > 9999){
 			printf("Quantidade deve estar dentro do intervalo de 1 a 9999\n");
 		}
+		getchar();
 	}while(qtd_estoque < 1 || qtd_estoque > 9999);
 	
 	return qtd_estoque;
@@ -1088,6 +1136,7 @@ void menu_principal(Produto produtos[], int qtd, Item_do_Carrinho carrinho[], in
 
 
 int main(){
+	setlocale(LC_ALL, "Portuguese");
 	Item_do_Carrinho carrinho[TAM_MAX];
 	Produto produtos[TAM_MAX];
 	Pedido pedidos[TAM_MAX];
